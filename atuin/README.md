@@ -46,8 +46,10 @@ Browsers with secure DNS (DoH) on cannot resolve MagicDNS names. Use the tailnet
    atuin sync
    ```
 
-Registration is open (`ATUIN_OPEN_REGISTRATION: "true"`). Once every account exists, set it to
-`"false"` in `docker-compose.yaml` and run `docker compose up -d`. Logging in still works.
+Registration stays open on purpose (`ATUIN_OPEN_REGISTRATION: "true"`): anyone on the tailnet
+can create an account. Each account's history is encrypted with its own key, so accounts cannot
+read each other's history. To close it, set `"false"` in `docker-compose.yaml` and run
+`docker compose up -d`; existing accounts can still log in.
 
 ## Client: each new device
 
@@ -64,6 +66,30 @@ Registration is open (`ATUIN_OPEN_REGISTRATION: "true"`). Once every account exi
 4. Check: `atuin history list | tail` shows commands from your other devices.
 
 Atuin syncs on its own after that (`auto_sync`, on by default). Run `atuin sync` to sync now.
+
+## How recording and sync work
+
+**Recording.** Atuin records every command in a local SQLite database, with its directory, exit
+code, duration and host. Search (Ctrl-R, up arrow) reads only this local database. Not recorded:
+
+- Commands that look like secrets (AWS keys, GitHub tokens, ...): `secrets_filter`, on by default.
+- Commands that match your own regexes in `history_filter`.
+- Commands typed with a leading space.
+
+**Sync.** Not per command. With `auto_sync` (on by default), atuin uploads in batches every
+`sync_frequency` (default `10m`). The check runs only after a command finishes, so an idle shell
+does not sync. To sync after every command, set this in `~/.config/atuin/config.toml`:
+
+```toml
+sync_frequency = "0"
+```
+
+**Off the tailnet.** Commands are still recorded, and search still works on everything up to the
+last sync. The background sync fails quietly and does not slow the shell. Back on the tailnet,
+the next sync uploads the backlog: nothing is lost. Commands from other devices appear only after
+both devices have synced.
+
+Check the last sync time and the server in use with `atuin status`.
 
 ## Turn off the shell's own history file
 
