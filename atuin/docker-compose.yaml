@@ -1,0 +1,66 @@
+name: atuin-node
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # Joins the Mesh; owns the netns that atuin shares.
+  ts:
+    image: ghcr.io/sagernet/sing-box:${SINGBOX_VERSION:?}
+    entrypoint: ["/entrypoint.sh"]
+    # Resource limits
+    mem_limit: 256m
+    mem_reservation: 64m
+    memswap_limit: -1 # no swap limit
+    # Networks and ports: atuin listens inside this netns, so its port is published here
+    ports:
+      - "127.0.0.1:8888:8888"
+    # Env and volumes
+    env_file: .env
+    volumes:
+      - ./entrypoint.sh:/entrypoint.sh:ro
+      - ./config.json:/config.json.tmpl:ro
+      - ./tailscale-data:/var/lib/tailscale
+    # Loggings and others
+    logging:
+      <<: *default-logging
+    restart: unless-stopped
+
+  atuin:
+    image: ghcr.io/atuinsh/atuin:${ATUIN_VERSION:?}
+    container_name: atuin
+    command: start
+    volumes:
+      - "./config:/config"
+    ipc: host
+    network_mode: service:ts # reachable as 127.0.0.1:8888 from ts
+    depends_on:
+      - ts
+      - db
+    environment:
+        ATUIN_HOST: "0.0.0.0"
+        ATUIN_OPEN_REGISTRATION: "true"
+        ATUIN_DB_URI: postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@db/${ATUIN_DB_NAME}
+        RUST_LOG: info,atuin_server=debug
+    # Loggings and others
+    logging:
+      <<: *default-logging
+    restart: unless-stopped
+
+  db:
+    image: postgres:18
+    volumes: # Don't remove permanent storage for index database files!
+      - "./database:/var/lib/postgresql/"
+    environment:
+      POSTGRES_USER: ${ATUIN_DB_USERNAME}
+      POSTGRES_PASSWORD: ${ATUIN_DB_PASSWORD}
+      POSTGRES_DB: ${ATUIN_DB_NAME}
+      TZ: Asia/Yangon
+      PGTZ: Asia/Yangon
+    # Loggings and others
+    logging:
+      <<: *default-logging
+    restart: unless-stopped

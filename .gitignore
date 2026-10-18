@@ -1,0 +1,10 @@
+.DS_Store
+
+# Secrets: only .env.sample belongs in git
+.env
+
+# Runtime data mounted by docker-compose
+atuin/config/
+atuin/database/
+atuin/tailscale-data/
+ccm-ocm/data/
