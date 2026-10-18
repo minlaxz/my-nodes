@@ -45,7 +45,7 @@ The key is not used again. Headscale's `node.expiry` defaults to `0`, so the nod
 From any Mesh node (no ACL policy set in headscale, so all nodes reach each other):
 
 ```sh
-curl http://vllm.minlaxz.internal:8000/v1/models   # MagicDNS; or the 100.x.x.x IP
+curl http://vllm.<base_domain>:8000/v1/models   # MagicDNS; or the 100.x.x.x IP
 tailscale ping vllm
 ```
 
@@ -82,7 +82,7 @@ no TUN, no routes, no exit node. So model downloads leave EC2 the normal Docker 
 
 ```
 HF download:   vllm → docker bridge → EC2 → huggingface.co      (headscale not involved)
-LLM request:   100.64.0.10 ⇄ WireGuard ⇄ ts → 127.0.0.1:8000   (tailnet)
+LLM request:   100.x.y.z ⇄ WireGuard ⇄ ts → 127.0.0.1:8000   (tailnet)
 ```
 
 What reaches the headscale VPS:
@@ -110,7 +110,7 @@ docker exec vllm python3 -c "import urllib.request; print(urllib.request.urlopen
 docker compose logs ts | grep -i huggingface
 ```
 
-Tailnet peers are direct, not relayed (from a tailscale CLI node, e.g. 100.64.0.10):
+Tailnet peers are direct, not relayed (from a tailscale CLI node, e.g. 100.x.y.z):
 
 ```sh
 tailscale ping 100.x.x.x
