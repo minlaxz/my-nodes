@@ -8,3 +8,4 @@ atuin/config/
 atuin/database/
 atuin/tailscale-data/
 ccm-ocm/data/
+host-node/tailscale-data/
