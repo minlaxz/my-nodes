@@ -42,4 +42,8 @@ curl http://<TSN_HOSTNAME>:9999
 - Publish services on `127.0.0.1`, not `0.0.0.0`. A plain `9999:80` also opens the port on the
   host's public interface.
 - Restarting the `ts` container drops tailnet access to every service on the host.
+- `auto_detect_interface` is `false` on purpose. When `true`, sing-box binds its sockets to the
+  host's main interface (for example `ens4`). The node then cannot reach a headscale that runs in
+  Docker on the same host through the public IP, and never registers. The node needs no TUN, so the
+  setting is not needed.
 - Env values must not contain `|`, `&`, or `"`; the entrypoint uses `sed`.
