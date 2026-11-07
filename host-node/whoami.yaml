@@ -1,0 +1,10 @@
+# Demo service behind the host node. Run: docker compose -f whoami.yaml up -d
+name: whoami-demo
+
+services:
+  whoami:
+    image: traefik/whoami
+    # Loopback only: the tailnet reaches it through the host node, the internet does not
+    ports:
+      - "127.0.0.1:9999:80"
+    restart: unless-stopped

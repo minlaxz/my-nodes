@@ -1,0 +1,30 @@
+name: host-node
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # One Mesh node for the whole host. Tailnet hits on an allowed port go to
+  # 127.0.0.1:<port> on the host, so any stack that publishes 127.0.0.1:<port> is reachable.
+  ts:
+    image: ghcr.io/sagernet/sing-box:${SINGBOX_VERSION:?}
+    entrypoint: ["/entrypoint.sh"]
+    # Resource limits
+    mem_limit: 256m
+    mem_reservation: 64m
+    memswap_limit: -1 # no swap limit
+    # Host netns: 127.0.0.1 here is the host's loopback
+    network_mode: host
+    # Env and volumes
+    env_file: .env
+    volumes:
+      - ./entrypoint.sh:/entrypoint.sh:ro
+      - ./config.json:/config.json.tmpl:ro
+      - ./tailscale-data:/var/lib/tailscale
+    # Loggings and others
+    logging:
+      <<: *default-logging
+    restart: unless-stopped
