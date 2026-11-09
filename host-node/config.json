@@ -17,7 +17,15 @@
     "rules": [
       {
         "inbound": "ts-ep",
-        "port": [9999],
+        "port": [9999, 10000],
+        "port_range": ["10001:10099"],
+        "action": "route",
+        "outbound": "direct-out",
+        "override_address": "127.0.0.1"
+      },
+      {
+        "inbound": "ts-ep",
+        "port": [20000],
         "action": "route",
         "outbound": "direct-out",
         "override_address": "127.0.0.1"
