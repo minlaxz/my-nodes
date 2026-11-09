@@ -1,0 +1,24 @@
+# Demo backend behind Caddy. Run: docker compose -f caddy-whoami.yaml up -d
+# Path:      curl http://<TSN_HOSTNAME>:20000/whoami-caddy
+# Subdomain: curl http://whoami-caddy.<TSN_HOSTNAME>.<TSN_BASE_DOMAIN>:20000   (needs the Headscale DNS record)
+name: caddy-whoami
+
+services:
+  whoami-caddy:
+    image: traefik/whoami
+    # No ports: only Caddy on caddy-proxy-net can reach it
+    networks:
+      - caddy-proxy-net
+    labels:
+      # Site 0: path on the shared `:80` site. handle_path strips the prefix.
+      caddy_0: :80
+      caddy_0.handle_path: /whoami-caddy*
+      caddy_0.handle_path.reverse_proxy: "{{upstreams 80}}"
+      # Site 1: subdomain. `http://` keeps Caddy off 443 and ACME.
+      caddy_1: http://whoami-caddy.${TSN_HOSTNAME:?}.${TSN_BASE_DOMAIN:?}
+      caddy_1.reverse_proxy: "{{upstreams 80}}"
+    restart: unless-stopped
+
+networks:
+  caddy-proxy-net:
+    external: true

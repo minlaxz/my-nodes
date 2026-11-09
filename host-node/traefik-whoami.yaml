@@ -1,0 +1,20 @@
+# Demo backend behind Traefik. Run: docker compose -f traefik-whoami.yaml up -d
+# Path:      curl http://<TSN_HOSTNAME>:20000/whoami-traefik
+# Subdomain: curl http://whoami-traefik.<TSN_HOSTNAME>.<TSN_BASE_DOMAIN>:20000   (needs the Headscale DNS record)
+name: traefik-whoami
+
+services:
+  whoami-traefik:
+    image: traefik/whoami
+    # No ports: only Traefik on traefik-proxy-net can reach it
+    networks:
+      - traefik-proxy-net
+    labels:
+      traefik.enable: "true"
+      # Path or subdomain, one router. Host() ignores the :20000 in the Host header.
+      traefik.http.routers.whoami-traefik.rule: PathPrefix(`/whoami-traefik`) || Host(`whoami-traefik.${TSN_HOSTNAME:?}.${TSN_BASE_DOMAIN:?}`)
+    restart: unless-stopped
+
+networks:
+  traefik-proxy-net:
+    external: true

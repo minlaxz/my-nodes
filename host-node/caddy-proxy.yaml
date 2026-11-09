@@ -1,0 +1,25 @@
+# Reverse proxy behind the host node, on tailnet port 20000 (rule 2 in config.json).
+# Caddy flavor; same job as traefik-proxy.yaml. Run one of the two, both want 127.0.0.1:20000.
+# Backends join caddy-proxy-net and opt in with `caddy.*` labels; they publish no ports.
+# Run: docker compose -f caddy-proxy.yaml up -d
+name: caddy-proxy
+
+services:
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:2.13-alpine
+    environment:
+      # Which network to use for upstream addresses; auto-detect is unreliable (issue #207)
+      CADDY_INGRESS_NETWORKS: caddy-proxy-net
+    ports:
+      # Loopback only: the tailnet reaches it through the host node, the internet does not
+      - "127.0.0.1:20000:80"
+    volumes:
+      # Rootless Docker: set DOCKER_SOCK=/run/user/<uid>/docker.sock in .env
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    networks:
+      - caddy-proxy-net
+    restart: unless-stopped
+
+networks:
+  caddy-proxy-net:
+    name: caddy-proxy-net

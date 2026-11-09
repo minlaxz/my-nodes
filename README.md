@@ -14,7 +14,7 @@ control URL and a pre-auth key in each stack's `.env`.
 | [`atuin/`](atuin/) | Atuin shell-history sync server + Postgres, on the tailnet at `:8888` | Any host |
 | [`ccm-ocm/`](ccm-ocm/) | sing-box `ccm`/`ocm`: Claude Code and Codex multiplexers on `:4200`/`:4201` | Own VPS |
 | [`vllm/`](vllm/) | vLLM serving `Qwen/Qwen3-VL-8B-Instruct` on `:8000` | EC2 g6.xlarge |
-| [`host-node/`](host-node/) | One Mesh node for the whole host (host network), plus a `traefik/whoami` demo on `:9999` | Any host |
+| [`host-node/`](host-node/) | One Mesh node for the whole host (host network), plus `whoami` demos on `:10001` (direct) and `:20000` (Traefik) | Any host |
 
 ## Setup
 

@@ -1,0 +1,26 @@
+# Reverse proxy behind the host node, on tailnet port 20000 (rule 2 in config.json).
+# Backends join the `traefik-proxy-net` network and opt in with labels; they publish no ports.
+# Run: docker compose -f traefik-proxy.yaml up -d
+name: traefik-proxy
+
+services:
+  traefik:
+    image: traefik:v3
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=traefik-proxy-net
+      - --entrypoints.web.address=:80
+    ports:
+      # Loopback only: the tailnet reaches it through the host node, the internet does not
+      - "127.0.0.1:20000:80"
+    volumes:
+      # Rootless Docker: set DOCKER_SOCK=/run/user/<uid>/docker.sock in .env
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    networks:
+      - proxy
+    restart: unless-stopped
+
+networks:
+  proxy:
+    name: traefik-proxy-net
